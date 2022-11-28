@@ -4,10 +4,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.BorderStroke
+import androidx.annotation.FloatRange
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,15 +19,16 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.MeasurePolicy
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
@@ -36,22 +41,25 @@ import com.larsson.food_app_api.model.Restaurants
 import com.larsson.food_app_api.ui.theme.Food_app_apiTheme
 import com.larsson.food_app_api.viewModel.RestaurantsViewModel
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.unit.IntSize
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.larsson.food_app_api.model.Filter
 import com.larsson.food_app_api.ui.theme.PoppinsFontFamily
 import kotlinx.coroutines.launch
-import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
+import androidx.compose.ui.zIndex
+import androidx.constraintlayout.compose.ConstrainedLayoutReference
+import androidx.constraintlayout.compose.ConstraintLayout
 
 
 // TODO -
 
 class MainActivity : ComponentActivity() {
+
     private val restaurantsViewModel by viewModels<RestaurantsViewModel>()
-
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         restaurantsViewModel.getRestaurants(id = null)
@@ -59,7 +67,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-
             Food_app_apiTheme {
 
                 // A surface container using the 'background' color from the theme
@@ -76,13 +83,28 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Home(restaurantsViewModel: RestaurantsViewModel){
+    val density = LocalDensity.current
+   // var detailsVisable by remember { mutableStateOf(false) }
+    var sizeOfScreen: Int by remember { mutableStateOf(0) }
 
     Column(
+        modifier = Modifier
+            .padding(0.dp, 22.dp, 0.dp, 16.dp)
+            .onGloballyPositioned {
+                sizeOfScreen = it.size.height
+                println("size of screen $sizeOfScreen")
+            },
 
-        modifier = Modifier.padding(0.dp,22.dp, 0.dp, 16.dp),
     ) {
         Header()
         RestaurantList(restaurantList = restaurantsViewModel.restaurantsResponse, restaurantsViewModel = restaurantsViewModel)
+    }
+    AnimatedVisibility(visible = restaurantsViewModel.detailsVisable, enter = slideInVertically {
+        with(density) {
+            sizeOfScreen.dp.roundToPx()
+        }
+    }) {
+        RestaurantDetail(restaurantsViewModel)
     }
 }
 
@@ -91,8 +113,6 @@ fun Header() {
     Image(painterResource(R.drawable.logo), contentDescription = "", modifier = Modifier
         .height(54.dp)
         .width(54.dp))
-
-
 }
 
 @Composable
@@ -153,9 +173,15 @@ fun FilterItem(item: Filter) {
 
 
 @Composable
-fun RestaurantList(restaurantList: Restaurants?, restaurantsViewModel: RestaurantsViewModel, ) {
+fun RestaurantList(
+    restaurantList: Restaurants?,
+    restaurantsViewModel: RestaurantsViewModel
+
+) {
+   // var detailsVisable by remember { mutableStateOf(restaurantsViewModel.detailsVisable) }
     val lazyListState = rememberLazyListState()
     val scope = rememberCoroutineScope()
+
 
     LazyColumn (
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -251,12 +277,24 @@ fun InfoBox(restaurant: Restaurant, restaurantsViewModel: RestaurantsViewModel){
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
-fun RestaurantItem(restaurant: Restaurant, restaurantsViewModel: RestaurantsViewModel) {
+fun RestaurantItem(
+    restaurant: Restaurant,
+    restaurantsViewModel: RestaurantsViewModel,
 
+) {
+
+
+    var stateChanged by remember { mutableStateOf(false) }
+    var detailsVisable by remember { mutableStateOf(stateChanged) }
+
+    println("detailsvisable from item $detailsVisable")
     Card(modifier = Modifier
         .fillMaxWidth()
         .height(196.dp)
-        .padding(horizontal = 16.dp),
+        .padding(horizontal = 16.dp)
+        .clickable {
+            restaurantsViewModel.detailsVisable = true
+        },
 
       //
         shape = RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp),
@@ -282,48 +320,71 @@ fun RestaurantItem(restaurant: Restaurant, restaurantsViewModel: RestaurantsView
     }
 }
 
-@Composable
-fun RestaurantDetail() {
 
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.TopCenter
-        ) {
+
+@Composable
+fun RestaurantDetail(restaurantsViewModel: RestaurantsViewModel) {
+
            /* Image(
                 painter = rememberAsyncImagePainter("https://elgfors.se/code-test/restaurant/candy.png"),
                 contentDescription = null,
                 modifier = Modifier.size(48.dp)
             )*/
 
+    Box(contentAlignment = Alignment.TopCenter) {
+        val detailsImage = R.drawable.mongoose
+        var imgSize by remember { mutableStateOf(0) }
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White))
 
-            Image(
-                painterResource(id = R.drawable.mongoose),
-                contentDescription = null,
-                modifier = Modifier
-                    .wrapContentHeight()
-                    .fillMaxWidth()
-                    .border(3.dp, Color.Red)
-            )
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                RestaurantDetailsBox()
-            }
 
+
+    Column() {
+
+        Image(
+            painterResource(id = detailsImage),
+            contentDescription = null,
+            modifier = Modifier
+                .wrapContentHeight()
+                .fillMaxWidth()
+                .onGloballyPositioned {
+                    imgSize = it.size.height
+                },
+            contentScale = ContentScale.FillWidth
+        )
+
+
+        Box(
+            modifier = Modifier
+                 .offset(y = -(imgSize / 18).dp)
+
+                .padding(horizontal = 16.dp)
+
+        ) {
+
+
+
+
+
+            RestaurantDetailsBox()
 
         }
-
-
+    }
+    }
 
 }
+
 
 @Composable
 fun RestaurantDetailsBox() {
         Card(
-            shape = RoundedCornerShape(8.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(144.dp)
-                .background(Color.White)
-               // .padding(16.dp),
+                .height(144.dp),
+            elevation = 6.dp,
+            shape = RoundedCornerShape(8.dp)
+
 
         ) {
             Column(
@@ -342,7 +403,7 @@ fun RestaurantDetailsBox() {
 @Composable
 fun DefaultPreview() {
     Food_app_apiTheme {
-        RestaurantDetail()
+        //RestaurantDetail()
        // FilterItem(item = Filter("safas", "https://elgfors.se/code-test/filter/filter_top_rated.png","toprated"))
         // Home()
         //  InfoBox(restaurant = Restaurant(4, listOf("fasf"), "r3f3", "sad", "wayne", 5.4),)

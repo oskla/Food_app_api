@@ -17,6 +17,8 @@ class RestaurantsViewModel: ViewModel() {
     var restaurantFilterIds = mutableListOf<String>()
     var filtersFromApi: Filter? by mutableStateOf(null)
     var filters = mutableStateListOf<Filter?>()
+    var detailsVisable: Boolean by mutableStateOf(false)
+
 
 
 
