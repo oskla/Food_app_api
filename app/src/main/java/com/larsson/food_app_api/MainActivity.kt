@@ -5,7 +5,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -48,7 +51,7 @@ import com.larsson.food_app_api.ui.theme.PoppinsFontFamily
 import kotlinx.coroutines.launch
 
 
-// TODO -
+// TODO - Don't scroll to top when pressing restaurant item
 
 class MainActivity : ComponentActivity() {
 
@@ -93,11 +96,22 @@ fun Home(restaurantsViewModel: RestaurantsViewModel){
         Header()
         RestaurantList(restaurantList = restaurantsViewModel.restaurantsResponse, restaurantsViewModel = restaurantsViewModel)
     }
-    AnimatedVisibility(visible = restaurantsViewModel.detailsVisable, enter = slideInVertically {
+    AnimatedVisibility(
+        visible = restaurantsViewModel.detailsVisable,
+        enter = slideInVertically {
         with(density) {
             sizeOfScreen.dp.roundToPx()
         }
-    }) {
+    },
+        exit = slideOutVertically(animationSpec = tween(durationMillis = 500, easing = LinearEasing)) {
+        with(density) {
+            println("size screen $sizeOfScreen")
+            sizeOfScreen.dp.roundToPx()
+        }
+    }
+
+
+    ) {
         RestaurantDetail(restaurantsViewModel)
     }
 }
@@ -355,10 +369,15 @@ fun RestaurantDetail(restaurantsViewModel: RestaurantsViewModel) {
         }
 
         Box(
-            //modifier = Modifier.padding(22.dp, 40.dp, 0.dp, 0.dp),
-            contentAlignment = Alignment.TopStart
-        ) {
-            Icon(Icons.Filled.ExpandMore, "expand_more",Modifier.size(35.dp), tint = Color.Black )
+            modifier = Modifier
+                .padding(8.dp, 22.dp, 0.dp, 0.dp)
+                .clickable {
+                    restaurantsViewModel.detailsVisable = false
+                },
+            contentAlignment = Alignment.TopStart,
+
+            ) {
+            Icon(Icons.Filled.ExpandMore, "expand_more",Modifier.size(30.dp), tint = Color.Black )
         }
     }
 
@@ -408,12 +427,12 @@ fun RestaurantDetail2() {
         }
 
         Box(
-           // modifier = Modifier.padding(22.dp, 40.dp, 0.dp, 0.dp),
+            modifier = Modifier.padding(8.dp, 22.dp, 0.dp, 0.dp),
             contentAlignment = Alignment.TopStart,
-            modifier = Modifier.wrapContentSize()
+
 
         ) {
-            Icon(Icons.Filled.ExpandMore, "expand_more",Modifier.size(35.dp), tint = Color.Black )
+            Icon(Icons.Filled.ExpandMore, "expand_more",Modifier.size(30.dp), tint = Color.Black )
         }
 
         
