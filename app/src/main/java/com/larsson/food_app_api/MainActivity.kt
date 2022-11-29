@@ -4,19 +4,18 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.annotation.FloatRange
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Expand
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.*
@@ -26,8 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.MeasurePolicy
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -44,15 +41,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.ExperimentalTextApi
-import androidx.compose.ui.unit.IntSize
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.larsson.food_app_api.model.Filter
 import com.larsson.food_app_api.ui.theme.PoppinsFontFamily
 import kotlinx.coroutines.launch
-import androidx.compose.ui.zIndex
-import androidx.constraintlayout.compose.ConstrainedLayoutReference
-import androidx.constraintlayout.compose.ConstraintLayout
 
 
 // TODO -
@@ -84,7 +77,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Home(restaurantsViewModel: RestaurantsViewModel){
     val density = LocalDensity.current
-   // var detailsVisable by remember { mutableStateOf(false) }
+
+    // var detailsVisable by remember { mutableStateOf(false) }
     var sizeOfScreen: Int by remember { mutableStateOf(0) }
 
     Column(
@@ -95,7 +89,7 @@ fun Home(restaurantsViewModel: RestaurantsViewModel){
                 println("size of screen $sizeOfScreen")
             },
 
-    ) {
+        ) {
         Header()
         RestaurantList(restaurantList = restaurantsViewModel.restaurantsResponse, restaurantsViewModel = restaurantsViewModel)
     }
@@ -119,7 +113,7 @@ fun Header() {
 fun HorizontalRow(filters: SnapshotStateList<Filter?>) {
 
     LazyRow(
-       // horizontalArrangement = Arrangement.spacedBy(16.dp),
+        // horizontalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.padding(0.dp,22.dp,0.dp, 6.dp)
         ,content = {
             itemsIndexed(items = filters) { _, filter ->
@@ -151,8 +145,8 @@ fun FilterItem(item: Filter) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
 
-        ) {
-            
+            ) {
+
             Image(
                 painter = rememberAsyncImagePainter(item.imageUrl),
                 contentDescription = null,
@@ -171,26 +165,24 @@ fun FilterItem(item: Filter) {
     }
 }
 
-
 @Composable
 fun RestaurantList(
     restaurantList: Restaurants?,
     restaurantsViewModel: RestaurantsViewModel
 
 ) {
-   // var detailsVisable by remember { mutableStateOf(restaurantsViewModel.detailsVisable) }
+    // var detailsVisable by remember { mutableStateOf(restaurantsViewModel.detailsVisable) }
     val lazyListState = rememberLazyListState()
     val scope = rememberCoroutineScope()
-
 
     LazyColumn (
         verticalArrangement = Arrangement.spacedBy(16.dp),
         state = lazyListState
-            ) {
+    ) {
 
-            scope.launch {
-                lazyListState.animateScrollToItem(0)
-            }
+        scope.launch {
+            lazyListState.animateScrollToItem(0)
+        }
 
         if (restaurantList != null) {
 
@@ -201,7 +193,6 @@ fun RestaurantList(
             }
         }
     }
-
 }
 @OptIn(ExperimentalMaterialApi::class, ExperimentalTextApi::class)
 @Composable
@@ -247,7 +238,7 @@ fun InfoBox(restaurant: Restaurant, restaurantsViewModel: RestaurantsViewModel){
                                         fontWeight = Bold
                                     )
                                 }
-                                    index += 1
+                                index += 1
                             }
                         }
 
@@ -281,8 +272,7 @@ fun RestaurantItem(
     restaurant: Restaurant,
     restaurantsViewModel: RestaurantsViewModel,
 
-) {
-
+    ) {
 
     var stateChanged by remember { mutableStateOf(false) }
     var detailsVisable by remember { mutableStateOf(stateChanged) }
@@ -294,9 +284,10 @@ fun RestaurantItem(
         .padding(horizontal = 16.dp)
         .clickable {
             restaurantsViewModel.detailsVisable = true
+            restaurantsViewModel.currentRestaurant = restaurant
         },
 
-      //
+        //
         shape = RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp),
         elevation = 4.dp
     ) {
@@ -321,17 +312,16 @@ fun RestaurantItem(
 }
 
 
-
 @Composable
 fun RestaurantDetail(restaurantsViewModel: RestaurantsViewModel) {
 
-           /* Image(
-                painter = rememberAsyncImagePainter("https://elgfors.se/code-test/restaurant/candy.png"),
-                contentDescription = null,
-                modifier = Modifier.size(48.dp)
-            )*/
+    /* Image(
+         painter = rememberAsyncImagePainter("https://elgfors.se/code-test/restaurant/candy.png"),
+         contentDescription = null,
+         modifier = Modifier.size(48.dp)
+     )*/
 
-    Box(contentAlignment = Alignment.TopCenter) {
+    Box() {
         val detailsImage = R.drawable.mongoose
         var imgSize by remember { mutableStateOf(0) }
         Box(modifier = Modifier
@@ -339,72 +329,126 @@ fun RestaurantDetail(restaurantsViewModel: RestaurantsViewModel) {
             .background(Color.White))
 
 
+        Column() {
 
-    Column() {
+            Image(
+                painter = rememberAsyncImagePainter(restaurantsViewModel.currentRestaurant?.imageUrl),
+               // painterResource(id = detailsImage),
+                contentDescription = null,
+                modifier = Modifier
+                    .wrapContentHeight()
+                    .fillMaxWidth()
+                    .onGloballyPositioned {
+                        imgSize = it.size.height
+                    },
+                contentScale = ContentScale.FillWidth
+            )
+            Box(
+                modifier = Modifier
+                    .offset(y = -(imgSize / 18).dp)
+                    .padding(horizontal = 16.dp)
 
-        Image(
-            painterResource(id = detailsImage),
-            contentDescription = null,
-            modifier = Modifier
-                .wrapContentHeight()
-                .fillMaxWidth()
-                .onGloballyPositioned {
-                    imgSize = it.size.height
-                },
-            contentScale = ContentScale.FillWidth
-        )
+            ) {
+                RestaurantDetailsBox()
 
+            }
+        }
 
         Box(
-            modifier = Modifier
-                 .offset(y = -(imgSize / 18).dp)
-
-                .padding(horizontal = 16.dp)
-
+            //modifier = Modifier.padding(22.dp, 40.dp, 0.dp, 0.dp),
+            contentAlignment = Alignment.TopStart
         ) {
-
-
-
-
-
-            RestaurantDetailsBox()
-
+            Icon(Icons.Filled.ExpandMore, "expand_more",Modifier.size(35.dp), tint = Color.Black )
         }
-    }
     }
 
 }
 
+@Composable
+fun RestaurantDetail2() {
+
+    /* Image(
+         painter = rememberAsyncImagePainter("https://elgfors.se/code-test/restaurant/candy.png"),
+         contentDescription = null,
+         modifier = Modifier.size(48.dp)
+     )*/
+
+    Box() {
+
+        val detailsImage = R.drawable.mongoose
+        var imgSize by remember { mutableStateOf(0) }
+
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White))
+
+        Column() {
+
+            Image(
+                //painter = rememberAsyncImagePainter(restaurantsViewModel.currentRestaurant?.imageUrl),
+                 painterResource(id = detailsImage),
+                contentDescription = null,
+                modifier = Modifier
+                    .wrapContentHeight()
+                    .fillMaxWidth()
+                    .onGloballyPositioned {
+                        imgSize = it.size.height
+                    },
+                contentScale = ContentScale.FillWidth
+            )
+            Box(
+                modifier = Modifier
+                    .offset(y = -(imgSize / 18).dp)
+                    .padding(horizontal = 16.dp)
+
+            ) {
+              //  RestaurantDetailsBox()
+
+            }
+        }
+
+        Box(
+           // modifier = Modifier.padding(22.dp, 40.dp, 0.dp, 0.dp),
+            contentAlignment = Alignment.TopStart,
+            modifier = Modifier.wrapContentSize()
+
+        ) {
+            Icon(Icons.Filled.ExpandMore, "expand_more",Modifier.size(35.dp), tint = Color.Black )
+        }
+
+        
+    }
+
+}
 
 @Composable
 fun RestaurantDetailsBox() {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(144.dp),
-            elevation = 6.dp,
-            shape = RoundedCornerShape(8.dp)
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(144.dp),
+        elevation = 6.dp,
+        shape = RoundedCornerShape(8.dp)
 
+    ) {
+        Column(
+            verticalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.padding(16.dp)
 
         ) {
-            Column(
-                verticalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.padding(16.dp)
-
-            ) {
-                Text(text = "Emilias Fancy Food", fontSize = 24.sp)
-                Text(text = "Take-out",  fontSize = 16.sp, color = Color.Gray, fontWeight = Bold)
-                Text(text = "Open",  fontSize = 18.sp, color = Color(0xFF2ECC71))
-            }
+            Text(text = "Emilias Fancy Food", fontSize = 24.sp)
+            Text(text = "Take-out",  fontSize = 16.sp, color = Color.Gray, fontWeight = Bold)
+            Text(text = "Open",  fontSize = 18.sp, color = Color(0xFF2ECC71))
         }
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
     Food_app_apiTheme {
-        //RestaurantDetail()
-       // FilterItem(item = Filter("safas", "https://elgfors.se/code-test/filter/filter_top_rated.png","toprated"))
+        RestaurantDetail2()
+        // FilterItem(item = Filter("safas", "https://elgfors.se/code-test/filter/filter_top_rated.png","toprated"))
         // Home()
         //  InfoBox(restaurant = Restaurant(4, listOf("fasf"), "r3f3", "sad", "wayne", 5.4),)
         // RestaurantItem(restaurant = Restaurant(5,listOf("345", "534"), "afaw","https://elgfors.se/code-test/restaurant/burgers.png","hello", 5.6))
