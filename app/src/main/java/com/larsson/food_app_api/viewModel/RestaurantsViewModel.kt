@@ -1,7 +1,6 @@
 package com.larsson.food_app_api.viewModel
 
 import androidx.compose.runtime.*
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.larsson.food_app_api.model.Filter
@@ -14,32 +13,54 @@ import kotlinx.coroutines.launch
 class RestaurantsViewModel: ViewModel() {
     var restaurantsResponse: Restaurants? by mutableStateOf(null)
     private var errorMessage: String by mutableStateOf("")
-    var restaurantFilterIds = mutableListOf<String>()
-    var filtersFromApi: Filter? by mutableStateOf(null)
+    private var restaurantFilterIds = mutableListOf<String>()
+    private var filtersFromApi: Filter? by mutableStateOf(null)
     var filters = mutableStateListOf<Filter?>()
     var detailsVisable: Boolean by mutableStateOf(false)
     var currentRestaurant: Restaurant? by  mutableStateOf(null)
+    var activeFilter: Boolean by mutableStateOf(false)
+    //var pressedFilter: Filter? by mutableStateOf(null)
+    var filteredRestaurants = mutableStateListOf<Restaurant>()
 
 
 
+
+    fun getFiltredRestaurants(currentFilter: Filter) {
+
+        // Collection of matching filters
+
+        filteredRestaurants.clear() // Remove this later
+
+        // Current filterId : String
+        val filterId = currentFilter.id
+
+        // List of restaurants : List<Restaurant>
+        val restaurants = restaurantsResponse?.restaurants
+
+        if (restaurants != null) {
+            for (restaurant in restaurants) {
+
+                val matchingFilter = restaurant.filterIds.contains(filterId)
+                if (matchingFilter) {
+                    filteredRestaurants.add(restaurant)
+                }
+            }
+        }
+
+        println("matchingFIlterIds: ${filteredRestaurants.toList()}")
+
+    }
 
     // Get filter-objects that are fetched from dynamic API endpoint
-    private fun createFilters(): Filter? {
-
-        // println("filtersfromapi inside create filters $filtersFromApi")
+    fun createFilters() {
 
         val filter = Filter(filtersFromApi?.id!!, filtersFromApi!!.imageUrl, filtersFromApi!!.name)
-        println("Local filter: inside Create filter$filter")
         filters.add(filter)
-        println("Filters from create filters: $filters")
 
-
-        return filtersFromApi
+        return
     }
 
     private suspend fun addFiltersToList() {
-        // viewModelScope.launch {
-        println("Inside addFiltersToList: $restaurantFilterIds")
 
         for (restaurantId in restaurantFilterIds) {
             getFiltersFromApi(restaurantId)
@@ -54,7 +75,6 @@ class RestaurantsViewModel: ViewModel() {
     private fun getFilterIds() {
         if (restaurantsResponse != null) {
             val restaurants = restaurantsResponse!!.restaurants
-
 
             // Add all id's to array
             for (restaurant in restaurants) {
@@ -105,6 +125,7 @@ class RestaurantsViewModel: ViewModel() {
             try {
                 val restaurantsList = apiService.getRestaurants()
                 restaurantsResponse = restaurantsList
+                filteredRestaurants.addAll(restaurantsList.restaurants)
 
                 getFilterIds()
                 addFiltersToList()

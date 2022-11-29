@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Expand
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Star
@@ -44,6 +43,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.font.FontStyle
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.larsson.food_app_api.model.Filter
@@ -52,6 +52,7 @@ import kotlinx.coroutines.launch
 
 
 // TODO - Don't scroll to top when pressing restaurant item
+// TODO - Remove ripple effect when clicking filters
 
 class MainActivity : ComponentActivity() {
 
@@ -118,13 +119,17 @@ fun Home(restaurantsViewModel: RestaurantsViewModel){
 
 @Composable
 fun Header() {
-    Image(painterResource(R.drawable.logo), contentDescription = "", modifier = Modifier
-        .height(54.dp)
-        .width(54.dp))
+    Box(modifier = Modifier.padding(start = 16.dp)) {
+        Image(painterResource(R.drawable.logo), contentDescription = "",
+            modifier = Modifier
+                .height(54.dp)
+                .width(54.dp))
+    }
+
 }
 
 @Composable
-fun HorizontalRow(filters: SnapshotStateList<Filter?>) {
+fun HorizontalRow(filters: SnapshotStateList<Filter?>, restaurantsViewModel: RestaurantsViewModel) {
 
     LazyRow(
         // horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -132,7 +137,7 @@ fun HorizontalRow(filters: SnapshotStateList<Filter?>) {
         ,content = {
             itemsIndexed(items = filters) { _, filter ->
                 if (filter != null) {
-                    FilterItem(item = filter)
+                    FilterItem(item = filter, restaurantsViewModel = restaurantsViewModel)
                 }
 
             }
@@ -144,15 +149,29 @@ fun HorizontalRow(filters: SnapshotStateList<Filter?>) {
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
-fun FilterItem(item: Filter) {
+fun FilterItem(item: Filter, restaurantsViewModel: RestaurantsViewModel) {
+
+    var selected by remember { mutableStateOf(false) }
+    var filterButtonBgColor = 0xFFFFFFFF
+    var filterButtonTextColor = 0xFF1F2B2E
+
+    if (selected) {
+        filterButtonBgColor = 0xFFE2A364
+        filterButtonTextColor = 0xFFFFFFFF
+    }
 
     Card (
-        backgroundColor = Color(0xFFFFFFFF),
+        backgroundColor = Color(filterButtonBgColor),
         shape = RoundedCornerShape(24.dp),
         modifier = Modifier
             .padding(16.dp, 0.dp, 0.dp, 0.dp)
             .wrapContentWidth()
-            .height(48.dp),
+            .height(48.dp)
+            .clickable {
+                restaurantsViewModel.activeFilter = true
+                restaurantsViewModel.getFiltredRestaurants(item)
+                      selected = !selected
+                       },
 
         elevation = 6.dp
     ) {
@@ -170,7 +189,7 @@ fun FilterItem(item: Filter) {
                 .padding(8.dp, 0.dp, 16.dp, 0.dp))
             {
                 Spacer(modifier = Modifier.weight(1.0f))
-                Text(text = item.name, fontSize = 14.sp, fontFamily = PoppinsFontFamily)
+                Text(text = item.name, fontSize = 14.sp, fontFamily = PoppinsFontFamily, color = Color(filterButtonTextColor))
                 Spacer(modifier = Modifier.weight(1.0f))
             }
 
@@ -185,7 +204,6 @@ fun RestaurantList(
     restaurantsViewModel: RestaurantsViewModel
 
 ) {
-    // var detailsVisable by remember { mutableStateOf(restaurantsViewModel.detailsVisable) }
     val lazyListState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
@@ -200,14 +218,54 @@ fun RestaurantList(
 
         if (restaurantList != null) {
 
-            item {  HorizontalRow(filters = restaurantsViewModel.filters) }
-            itemsIndexed(items = restaurantList.restaurants) { _, item ->
+            item {  HorizontalRow(filters = restaurantsViewModel.filters, restaurantsViewModel = restaurantsViewModel) }
+            itemsIndexed(items = restaurantsViewModel.filteredRestaurants) { _, item ->
                 RestaurantItem(restaurant = item, restaurantsViewModel = restaurantsViewModel)
 
             }
         }
     }
 }
+
+// Example Top-rated - Eat in etc...
+@Composable
+fun FiltersTextRow(
+    restaurantsViewModel: RestaurantsViewModel,
+    restaurant: Restaurant,
+    fontSize: Int
+) {
+    LazyRow(
+
+    ) {
+
+        var index = 1 // for controlling when to show dot after text
+
+        items(items = restaurantsViewModel.filters) { filter ->
+            if (filter != null) {
+                if (restaurant.filterIds.contains(filter.id)) {
+                    Text(
+                        text = filter.name,
+                        fontSize = fontSize.sp,
+                        color = Color.Gray,
+                        fontWeight = Bold,
+                    )
+
+                    if (index < restaurant.filterIds.size) {
+                        Text(
+                            text = "  •  ",
+                            fontSize = 12.sp,
+                            color = Color.Gray,
+                            fontWeight = Bold
+                        )
+                    }
+                    index += 1
+                }
+            }
+
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterialApi::class, ExperimentalTextApi::class)
 @Composable
 fun InfoBox(restaurant: Restaurant, restaurantsViewModel: RestaurantsViewModel){
@@ -227,37 +285,11 @@ fun InfoBox(restaurant: Restaurant, restaurantsViewModel: RestaurantsViewModel){
             ) {
                 Text(text = AnnotatedString(restaurant.name), style = TextStyle(fontSize = 18.sp))
 
-                LazyRow(
-
-                ) {
-
-                    var index = 1 // for controlling when to show dot after text
-
-                    items(items = restaurantsViewModel.filters) { filter ->
-                        if (filter != null) {
-                            if (restaurant.filterIds.contains(filter.id)) {
-                                Text(
-
-                                    text = filter.name,
-                                    fontSize = 12.sp,
-                                    color = Color.Gray,
-                                    fontWeight = Bold,
-                                )
-
-                                if (index < restaurant.filterIds.size) {
-                                    Text(
-                                        text = "  •  ",
-                                        fontSize = 12.sp,
-                                        color = Color.Gray,
-                                        fontWeight = Bold
-                                    )
-                                }
-                                index += 1
-                            }
-                        }
-
-                    }
-                }
+                FiltersTextRow(
+                    restaurantsViewModel = restaurantsViewModel,
+                    restaurant = restaurant,
+                    fontSize = 12
+                )
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.Schedule, "schedule",Modifier.size(10.dp), tint = Color.Red )
@@ -288,8 +320,8 @@ fun RestaurantItem(
 
     ) {
 
-    var stateChanged by remember { mutableStateOf(false) }
-    var detailsVisable by remember { mutableStateOf(stateChanged) }
+    val stateChanged by remember { mutableStateOf(false) }
+    val detailsVisable by remember { mutableStateOf(stateChanged) }
 
     println("detailsvisable from item $detailsVisable")
     Card(modifier = Modifier
@@ -301,7 +333,6 @@ fun RestaurantItem(
             restaurantsViewModel.currentRestaurant = restaurant
         },
 
-        //
         shape = RoundedCornerShape(12.dp, 12.dp, 0.dp, 0.dp),
         elevation = 4.dp
     ) {
@@ -329,14 +360,8 @@ fun RestaurantItem(
 @Composable
 fun RestaurantDetail(restaurantsViewModel: RestaurantsViewModel) {
 
-    /* Image(
-         painter = rememberAsyncImagePainter("https://elgfors.se/code-test/restaurant/candy.png"),
-         contentDescription = null,
-         modifier = Modifier.size(48.dp)
-     )*/
-
     Box() {
-        val detailsImage = R.drawable.mongoose
+ 
         var imgSize by remember { mutableStateOf(0) }
         Box(modifier = Modifier
             .fillMaxSize()
@@ -363,7 +388,7 @@ fun RestaurantDetail(restaurantsViewModel: RestaurantsViewModel) {
                     .padding(horizontal = 16.dp)
 
             ) {
-                RestaurantDetailsBox()
+                RestaurantDetailsBox(restaurantsViewModel)
 
             }
         }
@@ -383,65 +408,12 @@ fun RestaurantDetail(restaurantsViewModel: RestaurantsViewModel) {
 
 }
 
-@Composable
-fun RestaurantDetail2() {
-
-    /* Image(
-         painter = rememberAsyncImagePainter("https://elgfors.se/code-test/restaurant/candy.png"),
-         contentDescription = null,
-         modifier = Modifier.size(48.dp)
-     )*/
-
-    Box() {
-
-        val detailsImage = R.drawable.mongoose
-        var imgSize by remember { mutableStateOf(0) }
-
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White))
-
-        Column() {
-
-            Image(
-                //painter = rememberAsyncImagePainter(restaurantsViewModel.currentRestaurant?.imageUrl),
-                 painterResource(id = detailsImage),
-                contentDescription = null,
-                modifier = Modifier
-                    .wrapContentHeight()
-                    .fillMaxWidth()
-                    .onGloballyPositioned {
-                        imgSize = it.size.height
-                    },
-                contentScale = ContentScale.FillWidth
-            )
-            Box(
-                modifier = Modifier
-                    .offset(y = -(imgSize / 18).dp)
-                    .padding(horizontal = 16.dp)
-
-            ) {
-              //  RestaurantDetailsBox()
-
-            }
-        }
-
-        Box(
-            modifier = Modifier.padding(8.dp, 22.dp, 0.dp, 0.dp),
-            contentAlignment = Alignment.TopStart,
-
-
-        ) {
-            Icon(Icons.Filled.ExpandMore, "expand_more",Modifier.size(30.dp), tint = Color.Black )
-        }
-
-        
-    }
-
-}
 
 @Composable
-fun RestaurantDetailsBox() {
+fun RestaurantDetailsBox(restaurantsViewModel: RestaurantsViewModel) {
+
+    val currentRestaurant = restaurantsViewModel.currentRestaurant
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -455,8 +427,10 @@ fun RestaurantDetailsBox() {
             modifier = Modifier.padding(16.dp)
 
         ) {
-            Text(text = "Emilias Fancy Food", fontSize = 24.sp)
-            Text(text = "Take-out",  fontSize = 16.sp, color = Color.Gray, fontWeight = Bold)
+            restaurantsViewModel.currentRestaurant?.name?.let { Text(text = it, fontSize = 24.sp) }
+            if (currentRestaurant != null) {
+                FiltersTextRow(restaurantsViewModel = restaurantsViewModel, restaurant = currentRestaurant, fontSize = 14)
+            }
             Text(text = "Open",  fontSize = 18.sp, color = Color(0xFF2ECC71))
         }
     }
@@ -466,7 +440,6 @@ fun RestaurantDetailsBox() {
 @Composable
 fun DefaultPreview() {
     Food_app_apiTheme {
-        RestaurantDetail2()
         // FilterItem(item = Filter("safas", "https://elgfors.se/code-test/filter/filter_top_rated.png","toprated"))
         // Home()
         //  InfoBox(restaurant = Restaurant(4, listOf("fasf"), "r3f3", "sad", "wayne", 5.4),)
