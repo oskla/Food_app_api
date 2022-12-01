@@ -19,35 +19,50 @@ class RestaurantsViewModel: ViewModel() {
     var detailsVisable: Boolean by mutableStateOf(false)
     var currentRestaurant: Restaurant? by  mutableStateOf(null)
     var activeFilter: Boolean by mutableStateOf(false)
-    //var pressedFilter: Filter? by mutableStateOf(null)
-    var filteredRestaurants = mutableStateListOf<Restaurant>()
+
+    var visibleRestaurants = mutableStateListOf<Restaurant>() // this should always be the last step
+    var activeFilterIds = mutableStateListOf<String>() //filterIds
 
 
 
 
-    fun getFiltredRestaurants(currentFilter: Filter) {
+   /* fun deselectFilter(currentFilter: Filter) {
+        val filterId = currentFilter.id
+        activeFilterIds.remove(filterId)
 
-        // Collection of matching filters
 
-        filteredRestaurants.clear() // Remove this later
+    }*/
 
-        // Current filterId : String
+    fun getFiltredRestaurants(currentFilter: Filter, didDeselect: Boolean) {
+
+                   // Current filterId : String
         val filterId = currentFilter.id
 
-        // List of restaurants : List<Restaurant>
+        if (!didDeselect) {
+            visibleRestaurants.clear()
+
+            // add filterId to List
+            activeFilterIds.add(filterId)
+        }
+        if (didDeselect) {
+            // Remove selected filter from list
+              activeFilterIds.remove(filterId)
+        }
+
+
+        // List of all restaurants : List<Restaurant>
         val restaurants = restaurantsResponse?.restaurants
 
         if (restaurants != null) {
             for (restaurant in restaurants) {
-
-                val matchingFilter = restaurant.filterIds.contains(filterId)
-                if (matchingFilter) {
-                    filteredRestaurants.add(restaurant)
-                }
+                    val matchingFilter = restaurant.filterIds.containsAll(activeFilterIds)
+                    if (matchingFilter) {
+                        visibleRestaurants.add(restaurant)
+                    }
             }
         }
 
-        println("matchingFIlterIds: ${filteredRestaurants.toList()}")
+        println("matchingFIlterIds: ${visibleRestaurants.toList()}")
 
     }
 
@@ -125,7 +140,7 @@ class RestaurantsViewModel: ViewModel() {
             try {
                 val restaurantsList = apiService.getRestaurants()
                 restaurantsResponse = restaurantsList
-                filteredRestaurants.addAll(restaurantsList.restaurants)
+                visibleRestaurants.addAll(restaurantsList.restaurants)
 
                 getFilterIds()
                 addFiltersToList()

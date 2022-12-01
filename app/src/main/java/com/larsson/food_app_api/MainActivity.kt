@@ -43,7 +43,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.ExperimentalTextApi
-import androidx.compose.ui.text.font.FontStyle
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.larsson.food_app_api.model.Filter
@@ -53,6 +52,7 @@ import kotlinx.coroutines.launch
 
 // TODO - Don't scroll to top when pressing restaurant item
 // TODO - Remove ripple effect when clicking filters
+// TODO - How to show multiple filters at once?
 
 class MainActivity : ComponentActivity() {
 
@@ -82,7 +82,6 @@ class MainActivity : ComponentActivity() {
 fun Home(restaurantsViewModel: RestaurantsViewModel){
     val density = LocalDensity.current
 
-    // var detailsVisable by remember { mutableStateOf(false) }
     var sizeOfScreen: Int by remember { mutableStateOf(0) }
 
     Column(
@@ -168,9 +167,17 @@ fun FilterItem(item: Filter, restaurantsViewModel: RestaurantsViewModel) {
             .wrapContentWidth()
             .height(48.dp)
             .clickable {
-                restaurantsViewModel.activeFilter = true
-                restaurantsViewModel.getFiltredRestaurants(item)
+
                       selected = !selected
+
+                if (selected) {
+                    restaurantsViewModel.activeFilter = true
+                    restaurantsViewModel.getFiltredRestaurants(item, false)
+                }
+
+                if (!selected) {
+                    restaurantsViewModel.getFiltredRestaurants(item, true)
+                }
                        },
 
         elevation = 6.dp
@@ -219,7 +226,7 @@ fun RestaurantList(
         if (restaurantList != null) {
 
             item {  HorizontalRow(filters = restaurantsViewModel.filters, restaurantsViewModel = restaurantsViewModel) }
-            itemsIndexed(items = restaurantsViewModel.filteredRestaurants) { _, item ->
+            itemsIndexed(items = restaurantsViewModel.visibleRestaurants) { _, item ->
                 RestaurantItem(restaurant = item, restaurantsViewModel = restaurantsViewModel)
 
             }
