@@ -147,11 +147,12 @@ fun HorizontalRow(filters: SnapshotStateList<Filter?>, restaurantsViewModel: Res
 
 
 
-@OptIn(ExperimentalCoilApi::class)
+@OptIn(ExperimentalCoilApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun FilterItem(item: Filter, restaurantsViewModel: RestaurantsViewModel) {
 
     var selected by rememberSaveable { mutableStateOf(false) }
+
     var filterButtonBgColor = 0xFFFFFFFF
     var filterButtonTextColor = 0xFF1F2B2E
 
@@ -160,26 +161,24 @@ fun FilterItem(item: Filter, restaurantsViewModel: RestaurantsViewModel) {
         filterButtonTextColor = 0xFFFFFFFF
     }
 
-    Card (
-        backgroundColor = Color(filterButtonBgColor),
+    Surface (
+        onClick = {
+            selected = !selected
+            if (selected) {
+                //restaurantsViewModel.activeFilter = true
+                restaurantsViewModel.getFiltredRestaurants(item, false)
+            }
+
+            if (!selected) {
+                restaurantsViewModel.getFiltredRestaurants(item, true)
+            }
+                  },
+       color = Color(filterButtonBgColor),
         shape = RoundedCornerShape(24.dp),
         modifier = Modifier
             .padding(16.dp, 0.dp, 0.dp, 0.dp)
             .wrapContentWidth()
-            .height(48.dp)
-            .clickable {
-
-                selected = !selected
-
-                if (selected) {
-                    //restaurantsViewModel.activeFilter = true
-                    restaurantsViewModel.getFiltredRestaurants(item, false)
-                }
-
-                if (!selected) {
-                    restaurantsViewModel.getFiltredRestaurants(item, true)
-                }
-            },
+            .height(48.dp),
 
         elevation = 6.dp
     ) {
