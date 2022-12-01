@@ -18,10 +18,9 @@ class RestaurantsViewModel: ViewModel() {
     var filters = mutableStateListOf<Filter?>()
     var detailsVisable: Boolean by mutableStateOf(false)
     var currentRestaurant: Restaurant? by  mutableStateOf(null)
-    var activeFilter: Boolean by mutableStateOf(false)
-
+   // var activeFilter: Boolean by mutableStateOf(false)
     var visibleRestaurants = mutableStateListOf<Restaurant>() // this should always be the last step
-    var activeFilterIds = mutableStateListOf<String>() //filterIds
+    private var activeFilterIds = mutableStateListOf<String>() //filterIds
 
 
 
@@ -35,17 +34,18 @@ class RestaurantsViewModel: ViewModel() {
 
     fun getFiltredRestaurants(currentFilter: Filter, didDeselect: Boolean) {
 
-                   // Current filterId : String
+        // Current filterId : String
         val filterId = currentFilter.id
 
-        if (!didDeselect) {
-            visibleRestaurants.clear()
+        // Remove all restaurants from list
+        visibleRestaurants.clear()
 
-            // add filterId to List
+        if (!didDeselect) {
+            // add filterId to List of active filters
             activeFilterIds.add(filterId)
         }
         if (didDeselect) {
-            // Remove selected filter from list
+            // Remove selected filter from list of active filters
               activeFilterIds.remove(filterId)
         }
 
@@ -53,10 +53,13 @@ class RestaurantsViewModel: ViewModel() {
         // List of all restaurants : List<Restaurant>
         val restaurants = restaurantsResponse?.restaurants
 
+
         if (restaurants != null) {
+            // Loop through all restaurants and add only the ones that meet the specified conditions
             for (restaurant in restaurants) {
                     val matchingFilter = restaurant.filterIds.containsAll(activeFilterIds)
                     if (matchingFilter) {
+
                         visibleRestaurants.add(restaurant)
                     }
             }

@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -150,7 +151,7 @@ fun HorizontalRow(filters: SnapshotStateList<Filter?>, restaurantsViewModel: Res
 @Composable
 fun FilterItem(item: Filter, restaurantsViewModel: RestaurantsViewModel) {
 
-    var selected by remember { mutableStateOf(false) }
+    var selected by rememberSaveable { mutableStateOf(false) }
     var filterButtonBgColor = 0xFFFFFFFF
     var filterButtonTextColor = 0xFF1F2B2E
 
@@ -168,17 +169,17 @@ fun FilterItem(item: Filter, restaurantsViewModel: RestaurantsViewModel) {
             .height(48.dp)
             .clickable {
 
-                      selected = !selected
+                selected = !selected
 
                 if (selected) {
-                    restaurantsViewModel.activeFilter = true
+                    //restaurantsViewModel.activeFilter = true
                     restaurantsViewModel.getFiltredRestaurants(item, false)
                 }
 
                 if (!selected) {
                     restaurantsViewModel.getFiltredRestaurants(item, true)
                 }
-                       },
+            },
 
         elevation = 6.dp
     ) {
@@ -327,8 +328,8 @@ fun RestaurantItem(
 
     ) {
 
-    val stateChanged by remember { mutableStateOf(false) }
-    val detailsVisable by remember { mutableStateOf(stateChanged) }
+    val stateChanged by rememberSaveable { mutableStateOf(false) }
+    val detailsVisable by rememberSaveable { mutableStateOf(stateChanged) }
 
     println("detailsvisable from item $detailsVisable")
     Card(modifier = Modifier
