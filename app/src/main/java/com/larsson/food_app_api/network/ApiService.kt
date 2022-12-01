@@ -21,7 +21,7 @@ interface ApiService {
     suspend fun getFilters(@Path("id") id: String): Filter
 
     companion object {
-        var apiService: ApiService? = null
+        private var apiService: ApiService? = null
         fun getInstance(): ApiService {
             if (apiService == null) {
                 apiService = Retrofit.Builder()

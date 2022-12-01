@@ -16,26 +16,18 @@ class RestaurantsViewModel: ViewModel() {
     private var restaurantFilterIds = mutableListOf<String>()
     private var filtersFromApi: Filter? by mutableStateOf(null)
     var filters = mutableStateListOf<Filter?>()
-    var detailsVisable: Boolean by mutableStateOf(false)
+    var detailsVisible: Boolean by mutableStateOf(false)
     var currentRestaurant: Restaurant? by  mutableStateOf(null)
-   // var activeFilter: Boolean by mutableStateOf(false)
-    var visibleRestaurants = mutableStateListOf<Restaurant>() // this should always be the last step
-    private var activeFilterIds = mutableStateListOf<String>() //filterIds
+
+    var visibleRestaurants = mutableStateListOf<Restaurant>()
+    private var activeFilterIds = mutableStateListOf<String>() 
 
 
 
-
-   /* fun deselectFilter(currentFilter: Filter) {
-        val filterId = currentFilter.id
-        activeFilterIds.remove(filterId)
-
-
-    }*/
-
-    fun getFiltredRestaurants(currentFilter: Filter, didDeselect: Boolean) {
-
+    // Which restaurants to show, based on selected filters.
+    fun getFilteredRestaurants(selectedFilter: Filter, didDeselect: Boolean) {
         // Current filterId : String
-        val filterId = currentFilter.id
+        val filterId = selectedFilter.id
 
         // Remove all restaurants from list
         visibleRestaurants.clear()
@@ -49,10 +41,8 @@ class RestaurantsViewModel: ViewModel() {
               activeFilterIds.remove(filterId)
         }
 
-
         // List of all restaurants : List<Restaurant>
         val restaurants = restaurantsResponse?.restaurants
-
 
         if (restaurants != null) {
             // Loop through all restaurants and add only the ones that meet the specified conditions
@@ -65,12 +55,12 @@ class RestaurantsViewModel: ViewModel() {
             }
         }
 
-        println("matchingFIlterIds: ${visibleRestaurants.toList()}")
 
     }
 
-    // Get filter-objects that are fetched from dynamic API endpoint
-    fun createFilters() {
+    // Get filter-objects that are fetched from /filter/{id}
+    // Add to array
+    private fun createFilters() {
 
         val filter = Filter(filtersFromApi?.id!!, filtersFromApi!!.imageUrl, filtersFromApi!!.name)
         filters.add(filter)
@@ -78,6 +68,7 @@ class RestaurantsViewModel: ViewModel() {
         return
     }
 
+    // Loop through all id's
     private suspend fun addFiltersToList() {
 
         for (restaurantId in restaurantFilterIds) {
@@ -89,12 +80,11 @@ class RestaurantsViewModel: ViewModel() {
     }
 
 
-    // Get Filters that are attatched to each Restaurant
+    // Get FiltersIds that are attached to each Restaurant
     private fun getFilterIds() {
         if (restaurantsResponse != null) {
             val restaurants = restaurantsResponse!!.restaurants
 
-            // Add all id's to array
             for (restaurant in restaurants) {
                 if (restaurant.filterIds.isNotEmpty()) {
 
@@ -104,7 +94,6 @@ class RestaurantsViewModel: ViewModel() {
                         // Add to filter-array if id doesn't already exist in said array.
                         if (!restaurantFilterIds.contains(restaurant.filterIds[id]))
                         {
-
                             restaurantFilterIds.add(restaurant.filterIds[id])
                         }
                     }
@@ -117,7 +106,7 @@ class RestaurantsViewModel: ViewModel() {
     }
 
 
-
+    // API-GET /filter/{id}
     private suspend fun getFiltersFromApi(id: String) {
 
         val apiService = ApiService.getInstance()
@@ -125,17 +114,15 @@ class RestaurantsViewModel: ViewModel() {
         try {
             val filtersList = apiService.getFilters(id)
             filtersFromApi = filtersList
-            // println("filts from api $filtersFromApi")
+
         } catch (e:java.lang.Exception) {
             errorMessage = e.message.toString()
         }
 
-
-
-
         return
     }
 
+    // API-GET /restaurants
     fun getRestaurants(id: String?) {
         println(id)
         viewModelScope.launch {
@@ -145,14 +132,12 @@ class RestaurantsViewModel: ViewModel() {
                 restaurantsResponse = restaurantsList
                 visibleRestaurants.addAll(restaurantsList.restaurants)
 
-                getFilterIds()
-                addFiltersToList()
+                getFilterIds() // Get filterIds attached to restaurant
+                addFiltersToList() // Add these filters to a list
 
             } catch (e:java.lang.Exception) {
                 errorMessage = e.message.toString()
             }
-            println("api filterFromApi $filtersFromApi")
-            println("api filter ${filters[0]}")
         }
 
     }
