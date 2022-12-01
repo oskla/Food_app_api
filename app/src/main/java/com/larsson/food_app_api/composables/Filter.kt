@@ -128,7 +128,7 @@ fun FiltersTextRow(
                     Text(
                         text = filter.name,
                         fontSize = fontSize.sp,
-                        color = Color.Gray,
+                        color = Color(0xFF999999),
                         fontWeight = FontWeight.Bold,
                     )
 
@@ -136,7 +136,7 @@ fun FiltersTextRow(
                         Text(
                             text = "  •  ",
                             fontSize = 12.sp,
-                            color = Color.Gray,
+                            color = Color(0xFF999999),
                             fontWeight = FontWeight.Bold
                         )
                     }

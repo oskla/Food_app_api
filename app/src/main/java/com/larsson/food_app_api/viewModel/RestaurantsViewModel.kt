@@ -20,7 +20,7 @@ class RestaurantsViewModel: ViewModel() {
     var currentRestaurant: Restaurant? by  mutableStateOf(null)
 
     var visibleRestaurants = mutableStateListOf<Restaurant>()
-    private var activeFilterIds = mutableStateListOf<String>() 
+    private var activeFilterIds = mutableStateListOf<String>()
 
 
 

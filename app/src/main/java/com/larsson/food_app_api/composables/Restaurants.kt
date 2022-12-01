@@ -87,7 +87,7 @@ fun InfoBox(restaurant: Restaurant, restaurantsViewModel: RestaurantsViewModel){
             Column(
                 modifier = Modifier.height(65.dp), verticalArrangement = Arrangement.Center
             ) {
-                Text(text = AnnotatedString(restaurant.name), style = TextStyle(fontSize = 18.sp))
+                Text(text = AnnotatedString(restaurant.name), style = TextStyle(fontSize = 18.sp), color = Color(0xFF1F2B2E))
 
                 FiltersTextRow(
                     restaurantsViewModel = restaurantsViewModel,
@@ -97,7 +97,7 @@ fun InfoBox(restaurant: Restaurant, restaurantsViewModel: RestaurantsViewModel){
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.Schedule, "schedule", Modifier.size(10.dp), tint = Color.Red )
-                    Text(text = restaurant.deliveryTimeMinutes.toString() + " min", fontSize = 10.sp, modifier = Modifier.padding(3.dp, 0.dp, 0.dp, 0.dp))
+                    Text(text = restaurant.deliveryTimeMinutes.toString() + " min", fontSize = 10.sp, color = Color(0xFF1F2B2E), modifier = Modifier.padding(3.dp, 0.dp, 0.dp, 0.dp))
                 }
 
             }
@@ -169,7 +169,7 @@ fun RestaurantDetail(restaurantsViewModel: RestaurantsViewModel) {
         var imgSize by remember { mutableStateOf(0) }
         Box(modifier = Modifier
             .fillMaxSize()
-            .background(Color.White))
+            .background(Color(0xFFF8F8F8)))
 
 
         Column() {
@@ -231,7 +231,7 @@ fun RestaurantDetailsBox(restaurantsViewModel: RestaurantsViewModel) {
             modifier = Modifier.padding(16.dp)
 
         ) {
-            restaurantsViewModel.currentRestaurant?.name?.let { Text(text = it, fontSize = 24.sp) }
+            restaurantsViewModel.currentRestaurant?.name?.let { Text(text = it, fontSize = 24.sp, color = Color(0xFF1F2B2E)) }
             if (currentRestaurant != null) {
                 FiltersTextRow(restaurantsViewModel = restaurantsViewModel, restaurant = currentRestaurant, fontSize = 14)
             }
