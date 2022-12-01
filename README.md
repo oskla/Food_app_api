@@ -1,5 +1,5 @@
 # Food_app_api
- Food app
+ Restaurant app
 ***
 
 This application was made for android-phones, built in *Kotlin* with *Jetpack Compose*.  
@@ -9,10 +9,7 @@ There is also a filtering function where every filter is fetched from a dynamic 
 
 <img src="https://user-images.githubusercontent.com/90769758/205128332-662a5283-4e42-4045-9cc9-b3f326145954.png" alt="picture" width="200"/>  <img src="https://user-images.githubusercontent.com/90769758/205128527-2bfaca0d-3007-4002-9bf7-3cfdf9615452.png" alt="picture" width="200"/>  <img src="https://user-images.githubusercontent.com/90769758/205128593-b5882d6e-6fa2-4aa4-96e2-14f50ba1e461.png" alt="picture" width="200"/>
 
-
-
-
-https://user-images.githubusercontent.com/90769758/205131095-29c470de-92b9-4210-849c-671ebfcb952f.mp4
+https://user-images.githubusercontent.com/90769758/205136489-109ab884-12e5-4b9a-933a-caa3b21fbb97.mp4
 
 
 
