@@ -12,6 +12,7 @@ There is also a filtering function where every filter is fetched from a dynamic 
 
 
 
+https://user-images.githubusercontent.com/90769758/205131095-29c470de-92b9-4210-849c-671ebfcb952f.mp4
 
-https://user-images.githubusercontent.com/90769758/205130429-80295932-dc92-4358-a35f-e492225d67ab.mp4
+
 
