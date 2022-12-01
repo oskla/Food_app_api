@@ -59,7 +59,7 @@ fun Home(restaurantsViewModel: RestaurantsViewModel){
 
     Column(
         modifier = Modifier
-            .padding(0.dp, 22.dp, 0.dp, 16.dp)
+            .padding(0.dp, 22.dp, 0.dp, 0.dp)
             .onGloballyPositioned {
                 sizeOfScreen = it.size.height
                 println("size of screen $sizeOfScreen")

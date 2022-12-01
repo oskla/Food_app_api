@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
@@ -37,7 +36,7 @@ import coil.request.ImageRequest
 import com.larsson.food_app_api.model.Restaurant
 import com.larsson.food_app_api.model.Restaurants
 import com.larsson.food_app_api.viewModel.RestaurantsViewModel
-import kotlinx.coroutines.launch
+
 
 @Composable
 fun RestaurantList(
@@ -45,17 +44,12 @@ fun RestaurantList(
     restaurantsViewModel: RestaurantsViewModel
 
 ) {
-    val lazyListState = rememberLazyListState()
-    val scope = rememberCoroutineScope()
 
     LazyColumn (
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        state = lazyListState
+
     ) {
 
-        scope.launch {
-            lazyListState.animateScrollToItem(0)
-        }
 
         if (restaurantList != null) {
 
@@ -64,6 +58,10 @@ fun RestaurantList(
                 RestaurantItem(restaurant = item, restaurantsViewModel = restaurantsViewModel)
 
             }
+            item {
+                Spacer(modifier = Modifier)
+            }
+
         }
     }
 }
