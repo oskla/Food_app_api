@@ -123,8 +123,8 @@ class RestaurantsViewModel: ViewModel() {
     }
 
     // API-GET /restaurants
-    fun getRestaurants(id: String?) {
-        println(id)
+    fun getRestaurants() {
+
         viewModelScope.launch {
             val apiService = ApiService.getInstance()
             try {

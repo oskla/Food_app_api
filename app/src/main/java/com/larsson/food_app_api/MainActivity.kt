@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
     private val restaurantsViewModel by viewModels<RestaurantsViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        restaurantsViewModel.getRestaurants(id = null)
+        restaurantsViewModel.getRestaurants()
 
         super.onCreate(savedInstanceState)
 
