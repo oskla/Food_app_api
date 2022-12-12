@@ -1,5 +1,6 @@
 package com.larsson.food_app_api.viewModel
 
+import android.util.Log
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,6 +9,7 @@ import com.larsson.food_app_api.model.Restaurant
 import com.larsson.food_app_api.model.Restaurants
 import com.larsson.food_app_api.network.ApiService
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 
 
 class RestaurantsViewModel: ViewModel() {
@@ -58,10 +60,12 @@ class RestaurantsViewModel: ViewModel() {
 
     }
 
+
+
     // Get filter-objects that are fetched from /filter/{id}
     // Add to array
     private fun createFilters() {
-
+       
         val filter = Filter(filtersFromApi?.id!!, filtersFromApi!!.imageUrl, filtersFromApi!!.name)
         filters.add(filter)
 
@@ -135,7 +139,8 @@ class RestaurantsViewModel: ViewModel() {
                 getFilterIds() // Get filterIds attached to restaurant
                 addFiltersToList() // Add these filters to a list
 
-            } catch (e:java.lang.Exception) {
+            } catch (e:Exception) {
+
                 errorMessage = e.message.toString()
             }
         }
